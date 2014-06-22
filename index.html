@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<title>Philly Urban Agriculture</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
+  <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.4"></script>
+  <script src='http://api.tiles.mapbox.com/mapbox.js/v1.6.4/mapbox.js'></script>
+  <link href='http://api.tiles.mapbox.com/mapbox.js/v1.6.4/mapbox.css' rel='stylesheet' />
+  <!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+<script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:0; bottom:0; width:100%; }
+    #layers { position:relative; float:right; top:15px; right:15px; font-size:12px; 
+              z-index:999; font-weight:bold; }
+    #layeritem { width:300px; }
+  </style>
+</head>
+<body>
+<div class="btn-group btn-group-lg pull-right">
+  <div id="layers" class="dropdown pull-right">
+    <button class="btn btn-default dropdown-toggle" type="button" 
+      id="dropdownMenu" data-toggle="dropdown">Layers <span class="caret"></span>
+    </button>
+    <ul id='map-ui' class="list-group dropdown-menu nav nav-pills nav-stacked" role="menu" aria-labelledby="dropdownMenu">
+    </ul>
+  </div>
+</div>
+<div id='map'></div>
+<script>
+var ui = document.getElementById('map-ui');
+var map = L.mapbox.map('map', {
+  tileLayer: {
+        detectRetina: true
+    }
+}).setView([39.952451,-75.163664], 13);
+
+addLayer(L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png', { attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.' }), null, null, 'Base Map', 1);
+
+addLayer(L.tileLayer('http://banderkat.com:8888/v2/phila-hydro/{z}/{x}/{y}.png', {attribution:'Data from City of Philadelphia'}), 
+  L.mapbox.gridLayer('http://banderkat.com:8888/v2/phila-hydro.json'), '<strong>Hydrology</strong>', 'Hydrology', 2);
+
+addLayer(L.tileLayer('http://banderkat.com:8888/v2/philly-impervious/{z}/{x}/{y}.png', {attribution:'Data from City of Philadelphia'}), null, '<strong>Impervious</strong>', 'Impervious', 3);
+  
+addLayer(L.tileLayer('http://banderkat.com:8888/v2/philly-bldgs/{z}/{x}/{y}.png', {attribution:'Data from City of Philadelphia'}), null, 'Buildings', 'Buildings', 4);
+
+addLayer(L.tileLayer('http://banderkat.com:8888/v2/philly-land-use/{z}/{x}/{y}.png', {attribution:'Data from DVRPC'}), 
+  L.mapbox.gridLayer('http://banderkat.com:8888/v2/philly-land-use.json'), 'Land Use', 'Land Use', 5);
+
+function addLayer(layer, infoLayer, legend, name, zIndex) {
+    var gridControl = null;
+    layer
+        .setZIndex(zIndex)
+        .addTo(map);
+        
+    if (infoLayer) {
+      infoLayer
+        .addTo(map);
+        gridControl = L.mapbox.gridControl(infoLayer, {follow: true}).addTo(map);
+    }
+    
+    if (legend) {
+      map.legendControl.addLegend(legend);
+    }
+
+    // Create a simple layer switcher that toggles layers on
+    // and off.
+    var item = document.createElement('li');
+    var link = document.createElement('a');
+    link.href = '#';
+    link.className = 'active pull-right nav-justified';
+    link.innerHTML = '<span class="badge pull-left approved"><span class="glyphicon glyphicon-ok"></span></span><span class="pull-right">' + name + '</span>';
+    item.setAttribute('role', 'presentation');
+    item.className = 'nav-justified';
+    link.setAttribute('role', 'menuitem');
+    link.tabindex = '-1';
+
+    link.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (map.hasLayer(layer)) {
+            map.removeLayer(layer);
+            if (infoLayer) {
+              map.removeLayer(infoLayer);
+              gridControl.hide(); // hide any tooltip currently showing
+              map.removeControl(gridControl);
+            }
+            if (legend) {
+              map.legendControl.removeLegend(legend);
+            }
+            this.className = 'pull-right layeritem nav-justified';
+            this.innerHTML = '<span class="pull-right">' + name + '</span>';
+        } else {
+            map.addLayer(layer);
+            if (infoLayer) {
+              map.addLayer(infoLayer);
+              map.addControl(gridControl);
+            }
+            if (legend) {
+              map.legendControl.addLegend(legend);
+            }
+            this.className = 'active pull-right layeritem nav-justified';
+            this.innerHTML = '<span class="badge pull-left approved"><span class="glyphicon glyphicon-ok"></span></span><span class="pull-right">' + name + '</span>';
+        }
+    };
+
+    item.appendChild(link);
+    ui.appendChild(item);
+}
+</script>
+
+</body>
+</html>
+
