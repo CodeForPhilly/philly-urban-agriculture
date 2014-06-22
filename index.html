@@ -44,7 +44,7 @@ addLayer(L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{
 addLayer(L.tileLayer('http://banderkat.com:8888/v2/phila-hydro/{z}/{x}/{y}.png', {attribution:'Data from City of Philadelphia'}), 
   L.mapbox.gridLayer('http://banderkat.com:8888/v2/phila-hydro.json'), '<strong>Hydrology</strong>', 'Hydrology', 2);
 
-addLayer(L.tileLayer('http://banderkat.com:8888/v2/philly-impervious/{z}/{x}/{y}.png', {attribution:'Data from City of Philadelphia'}), null, '<strong>Impervious</strong>', 'Impervious', 3);
+addLayer(L.tileLayer('http://banderkat.com:8888/v2/philly-impervious/{z}/{x}/{y}.png', {attribution:'Data from City of Philadelphia'}), null, '<strong>Permeability</strong>', 'Permeability', 3);
   
 addLayer(L.tileLayer('http://banderkat.com:8888/v2/philly-bldgs/{z}/{x}/{y}.png', {attribution:'Data from City of Philadelphia'}), null, 'Buildings', 'Buildings', 4);
 
@@ -53,6 +53,7 @@ addLayer(L.tileLayer('http://banderkat.com:8888/v2/philly-land-use/{z}/{x}/{y}.p
 
 function addLayer(layer, infoLayer, legend, name, zIndex) {
     var gridControl = null;
+    //var legendControl = null;
     layer
         .setZIndex(zIndex)
         .addTo(map);
@@ -64,7 +65,8 @@ function addLayer(layer, infoLayer, legend, name, zIndex) {
     }
     
     if (legend) {
-      map.legendControl.addLegend(legend);
+      //legendControl = L.mapbox.legendControl();
+      //map.legendControl.addLegend(legend);
     }
 
     // Create a simple layer switcher that toggles layers on
@@ -100,9 +102,12 @@ function addLayer(layer, infoLayer, legend, name, zIndex) {
               map.addLayer(infoLayer);
               map.addControl(gridControl);
             }
+            
+            /*
             if (legend) {
               map.legendControl.addLegend(legend);
             }
+            */
             this.className = 'active pull-right layeritem nav-justified';
             this.innerHTML = '<span class="badge pull-left approved"><span class="glyphicon glyphicon-ok"></span></span><span class="pull-right">' + name + '</span>';
         }
