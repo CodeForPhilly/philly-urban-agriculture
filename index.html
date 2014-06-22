@@ -39,6 +39,50 @@ var map = L.mapbox.map('map', {
     }
 }).setView([39.952451,-75.163664], 13);
 
+var pointsLayer = L.mapbox.featureLayer();
+map.addLayer(pointsLayer);
+
+map.on('click', function(e) {
+  var startQry = 'http://groundedinphilly.org/lots/geojson/?centroid__within={"type":"Polygon","coordinates":';
+  var endQry = '&limit=1000&parents_only=True&known_use_existence=not+in+use&known_use_existence=in+use&available_property__status__in=new+and+available&available_property__status__in=available&polygon_area__gt=&polygon_area__lt=&polygon_width__gt=&polygon_width__lt=&known_use_certainty__gt=3&known_use_certainty__lt=11&view_type=tiles&owner__owner_type__in=mixed&owner__owner_type__in=private&owner__owner_type__in=public&homepage=http%3A%2F%2Fexample.com%2F&ea=&llr=4zzjribab&m=1100871952191&p=oi';
+  var bbox = map.getBounds();
+  var south = bbox.getSouth();
+  var north = bbox.getNorth();
+  var west = bbox.getWest();
+  var east = bbox.getEast();
+  var center = bbox.getCenter();
+  var bboxStr = "[[[" + west + "," + south + "],[" + west + "," + north + "],[" +
+    east + "," + north + "],[" + east + "," + south + "],[" + west + "," + south +
+    "]]]" + '}&centroid={"lat":' + center.lat + ',"lng":' + center.lng + '}';
+  var qryStr = startQry + bboxStr + endQry;
+  console.log(qryStr);
+  addPoints(qryStr);
+});
+
+var amQuerying = false;
+function addPoints(qry) {
+  console.log('Going to query!');
+  if (amQuerying) return;
+  amQuerying = true;
+  $.ajax({
+    url: qry, dataType: 'json',
+    crossDomain: true,
+    error: function (xhr, status, error) {
+      console.log('Oh dear.');
+      console.log(error);
+      console.log(xhr.statusText);
+      console.log(xhr.responseText);
+      amQuerying = false;
+      return;
+    }
+  }).done(function (data) {
+    console.log('done querying!');
+    pointsLayer.setGeoJSON(data);
+   
+  });
+  amQuerying = false;
+}
+
 addLayer(L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png', { attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.' }), null, null, 'Base Map', 1);
 
 addLayer(L.tileLayer('http://banderkat.com:8888/v2/phila-hydro/{z}/{x}/{y}.png', {attribution:'Data from City of Philadelphia'}), 
@@ -64,10 +108,12 @@ function addLayer(layer, infoLayer, legend, name, zIndex) {
         gridControl = L.mapbox.gridControl(infoLayer, {follow: true}).addTo(map);
     }
     
+    /*
     if (legend) {
-      //legendControl = L.mapbox.legendControl();
-      //map.legendControl.addLegend(legend);
+      legendControl = L.mapbox.legendControl();
+      map.legendControl.addLegend(legend);
     }
+    */
 
     // Create a simple layer switcher that toggles layers on
     // and off.
