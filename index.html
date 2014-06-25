@@ -40,6 +40,8 @@ var map = L.mapbox.map('map', {
 }).setView([39.952451,-75.163664], 13);
 
 var pointsLayer = L.mapbox.featureLayer();
+//var pointsLayer = L.geoJson();
+//onEachFeature: function (feature, layer) {layer.bindPopup(feature.properties.owner);}
 map.addLayer(pointsLayer);
 
 map.on('click', function(e) {
@@ -55,18 +57,18 @@ map.on('click', function(e) {
     east + "," + north + "],[" + east + "," + south + "],[" + west + "," + south +
     "]]]" + '}&centroid={"lat":' + center.lat + ',"lng":' + center.lng + '}';
   var qryStr = startQry + bboxStr + endQry;
-  console.log(qryStr);
   addPoints(qryStr);
 });
 
 var amQuerying = false;
 function addPoints(qry) {
+  qry = 'http://jsonp.jit.su/?url=' + encodeURIComponent(qry);
   console.log('Going to query!');
+  console.log(qry);
   if (amQuerying) return;
   amQuerying = true;
   $.ajax({
     url: qry, dataType: 'json',
-    crossDomain: true,
     error: function (xhr, status, error) {
       console.log('Oh dear.');
       console.log(error);
@@ -77,6 +79,7 @@ function addPoints(qry) {
     }
   }).done(function (data) {
     console.log('done querying!');
+    //pointsLayer.addData(data, {onEachFeature: function (feature, layer) {layer.bindPopup(feature.properties.owner);}});
     pointsLayer.setGeoJSON(data);
    
   });
